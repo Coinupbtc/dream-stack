@@ -1,0 +1,6 @@
+runs/2026/
+*.pyc
+__pycache__/
+.venv/
+logs/
+*.stdout.log

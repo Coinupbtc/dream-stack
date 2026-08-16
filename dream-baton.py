@@ -27,6 +27,10 @@ QWEN_MODEL = os.environ.get("BATON_QWEN_MODEL", "Qwen3.8-27B")
 DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")
 SERVED = os.environ.get("BATON_SERVED", "dream-baton")
 LOG = os.environ.get("BATON_LOG", os.path.expanduser("~/logs/dream-baton.log"))
+# Advertise 0731's window so /new is not stuck at Qwen 88k.
+# Requests that would overflow Qwen (~80k prompt) go to 0731.
+BATON_MAX_LEN = int(os.environ.get("BATON_MAX_LEN", "347392"))
+QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "75000"))
 
 ASYNC_RE = re.compile(
     r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"
@@ -65,12 +69,31 @@ def last_user_text(body: dict) -> str:
     return "\n".join(texts)
 
 
+def est_prompt_tokens(body: dict) -> int:
+    n = 0
+    for m in body.get("messages") or []:
+        if not isinstance(m, dict):
+            continue
+        c = m.get("content")
+        if isinstance(c, str):
+            n += max(1, len(c) // 4)
+        elif isinstance(c, list):
+            n += sum(max(1, len(str(p.get("text", ""))) // 4) for p in c if isinstance(p, dict))
+        if m.get("tool_calls"):
+            n += 200
+    tools = body.get("tools") or []
+    n += 80 * len(tools)
+    return n
+
+
 def pick_brain(body: dict) -> str:
     tc = body.get("tool_choice")
     if isinstance(tc, dict):
         tc = tc.get("type") or tc.get("tool") or ""
     tc = str(tc or "auto").lower()
     if tc in {"required", "any"}:
+        return "0731"
+    if est_prompt_tokens(body) > QWEN_SAFE:
         return "0731"
     text = last_user_text(body)
     if ASYNC_RE.search(text):
@@ -164,6 +187,7 @@ class Handler(BaseHTTPRequestHandler):
                             "object": "model",
                             "owned_by": "dream-baton",
                             "root": f"{DS4F_MODEL}+{QWEN_MODEL}",
+                            "max_model_len": BATON_MAX_LEN,
                         }
                     ],
                 },

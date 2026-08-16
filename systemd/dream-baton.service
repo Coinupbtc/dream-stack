@@ -1,0 +1,16 @@
+# Template. Prefer: bash scripts/install-systemd.sh
+# (writes a unit with this clone's absolute paths).
+[Unit]
+Description=Dream baton :8877 — Qwen default, 0731 on required/async/long
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/dream-stack
+EnvironmentFile=-%h/dream-stack/.env
+ExecStart=/usr/bin/python3 %h/dream-stack/dream-baton.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

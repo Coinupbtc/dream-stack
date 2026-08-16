@@ -1,6 +1,8 @@
-runs/2026/
+.env
+runs/
 *.pyc
 __pycache__/
 .venv/
 logs/
 *.stdout.log
+*.pid

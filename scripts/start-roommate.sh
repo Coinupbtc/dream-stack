@@ -16,7 +16,7 @@ BATCH="${QWEN_BATCH:-4096}"
 UBATCH="${QWEN_UBATCH:-1024}"
 GGUF="${GGUF:-$HOME/models/hf/Qwen3.8-27B/Qwen3.8-27B-UD-Q4_K_XL.gguf}"
 BIN="${LLAMA_SERVER:-$HOME/llama.cpp-v9/build/bin/llama-server}"
-SPEC="${QWEN_SPEC:---spec-type draft-mtp,ngram-mod,ngram-simple --spec-draft-n-max 3 --spec-draft-p-min 0.4}"
+SPEC="${QWEN_SPEC:---spec-type draft-mtp,ngram-mod,ngram-simple --spec-draft-n-max 4 --spec-draft-p-min 0.4}"
 
 ssh2() { ssh -o BatchMode=yes -o ConnectTimeout=12 "$SPARK2" "$@"; }
 

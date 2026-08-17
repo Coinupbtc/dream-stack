@@ -7,7 +7,7 @@ This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSee
 | Piece | Where | URL | Window (live) |
 |---|---|---|---|
 | **DeepSeek-V4-Flash-0731** TP=2 | both Sparks | `http://127.0.0.1:8888/v1` | **347392** |
-| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + MTP3 + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **124160** (requested 124000) |
+| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + **MTP4** + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **116224** (requested 116000) |
 | **Qwen3-VL-4B** (optional for text benches) | **node1 only** | `:8891` (proxy `:8890`) | 8192 |
 | **Baton** (this repo) | head node | `http://127.0.0.1:8877/v1` | advertises **347392** |
 
@@ -114,7 +114,7 @@ Roommate (`scripts/start-roommate.sh`):
 ```text
 llama-server
   --model    Qwen3.8-27B-UD-Q4_K_XL.gguf
-  --ctx-size 124000         # llama.cpp aligns to 124160
+  --ctx-size 116000         # llama.cpp aligns to 116224
   --parallel 1
   --flash-attn on
   --cache-type-k q4_0
@@ -125,7 +125,7 @@ llama-server
   --alias Qwen3.8-27B
   --chat-template-kwargs {"enable_thinking":false,"preserve_thinking":true}
   --spec-type draft-mtp,ngram-mod,ngram-simple
-  --spec-draft-n-max 3
+  --spec-draft-n-max 4
   --spec-draft-p-min 0.4
 ```
 
@@ -140,6 +140,8 @@ Baton (`dream-baton.py` on `:8877`):
 | find-then-email | 0731 |
 
 Clients see `max_model_len=347392`. Thinking is forced **off** so tool-eval-bench matches the published scores.
+
+Fat Qwen prefills (est ≥ 24k) and 0731 calls **take turns on node2** (`BATON_N2_FAT` / `BATON_N2_WAIT`). Short Qwen chats skip the lock. 124k ctx OOM-killed n2; do not raise past 116k without leftover ≥4 G.
 
 Laws:
 
@@ -161,7 +163,7 @@ Expect:
 
 ```text
 UP   0731   max_model_len=347392
-UP   Qwen   n_ctx=124160
+UP   Qwen   n_ctx=116224
 UP   baton  max_model_len=347392  id=dream-baton
 ```
 

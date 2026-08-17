@@ -14,6 +14,7 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -28,10 +29,18 @@ DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")
 SERVED = os.environ.get("BATON_SERVED", "dream-baton")
 LOG = os.environ.get("BATON_LOG", os.path.expanduser("~/logs/dream-baton.log"))
 # Advertise 0731's window so /new is not stuck at Qwen leftover.
-# Live roommate n_ctx=124160. Hand off before that wall; 400 still retries 0731.
+# Live roommate n_ctx=116224. Hand off before that wall; 400 still retries 0731.
+# Option 1 (SAFE ~80k) parked — do not drop until asked.
 BATON_MAX_LEN = int(os.environ.get("BATON_MAX_LEN", "347392"))
-QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "124160"))
+QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "116224"))
 QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "100000"))
+# n2 traffic cop: fat Qwen prefill and 0731 decode share box-2 UMA.
+# Don't start one while the other is in flight. Short Qwen chats skip the lock.
+N2_FAT = int(os.environ.get("BATON_N2_FAT", "24000"))
+N2_WAIT = float(os.environ.get("BATON_N2_WAIT", "30"))
+_n2_cv = threading.Condition()
+_n2_0731 = 0
+_n2_qwen_fat = 0
 
 ASYNC_RE = re.compile(
     r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"
@@ -116,6 +125,53 @@ def is_ctx_overflow(err_obj, raw: str = "") -> bool:
         or "context length" in s
         or "maximum context" in s
     )
+
+
+class N2Slot:
+    """Serialize fat Qwen prefills vs any 0731 call (both hit node2 leftover)."""
+
+    def __init__(self, kind: str | None):
+        self.kind = kind
+
+    def __enter__(self):
+        global _n2_0731, _n2_qwen_fat
+        if not self.kind:
+            return self
+        deadline = time.monotonic() + N2_WAIT
+        with _n2_cv:
+            while True:
+                conflict = (
+                    (self.kind == "qwen_fat" and _n2_0731 > 0)
+                    or (self.kind == "0731" and _n2_qwen_fat > 0)
+                )
+                if not conflict:
+                    break
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    log(
+                        f"n2-cop timeout kind={self.kind} "
+                        f"0731={_n2_0731} qfat={_n2_qwen_fat}"
+                    )
+                    break
+                _n2_cv.wait(timeout=left)
+            if self.kind == "0731":
+                _n2_0731 += 1
+            else:
+                _n2_qwen_fat += 1
+            log(f"n2-cop enter kind={self.kind} 0731={_n2_0731} qfat={_n2_qwen_fat}")
+        return self
+
+    def __exit__(self, *exc):
+        global _n2_0731, _n2_qwen_fat
+        if not self.kind:
+            return False
+        with _n2_cv:
+            if self.kind == "0731":
+                _n2_0731 = max(0, _n2_0731 - 1)
+            else:
+                _n2_qwen_fat = max(0, _n2_qwen_fat - 1)
+            _n2_cv.notify_all()
+        return False
 
 
 def pick_brain(body: dict) -> str:
@@ -226,7 +282,17 @@ class Handler(BaseHTTPRequestHandler):
             )
             return
         if path in {"/health", "/"}:
-            self._send(200, {"ok": True, "qwen": QWEN, "ds4f": DS4F})
+            self._send(
+                200,
+                {
+                    "ok": True,
+                    "qwen": QWEN,
+                    "ds4f": DS4F,
+                    "n2_0731": _n2_0731,
+                    "n2_qwen_fat": _n2_qwen_fat,
+                    "n2_fat": N2_FAT,
+                },
+            )
             return
         self._send(404, {"error": "not found"})
 
@@ -246,6 +312,11 @@ class Handler(BaseHTTPRequestHandler):
         t0 = time.perf_counter()
         want_stream = bool(body.get("stream"))
         est = est_prompt_tokens(body)
+        slot = "0731" if brain == "0731" else ("qwen_fat" if est >= N2_FAT else None)
+        with N2Slot(slot):
+            self._forward_locked(body, brain, base, model, est, want_stream, t0)
+
+    def _forward_locked(self, body, brain, base, model, est, want_stream, t0) -> None:
         if want_stream:
             used = brain
             try:

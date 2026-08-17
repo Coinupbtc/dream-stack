@@ -27,12 +27,11 @@ QWEN_MODEL = os.environ.get("BATON_QWEN_MODEL", "Qwen3.8-27B")
 DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")
 SERVED = os.environ.get("BATON_SERVED", "dream-baton")
 LOG = os.environ.get("BATON_LOG", os.path.expanduser("~/logs/dream-baton.log"))
-# Advertise 0731's window so /new is not stuck at Qwen 88k.
-# Requests that would overflow Qwen go to 0731. chars/4 undercounted
-# Hermes tool dumps (2026-08-16 Telegram: 90k real, estimate <75k).
+# Advertise 0731's window so /new is not stuck at Qwen leftover.
+# Live roommate n_ctx=104192. Hand off before that wall; 400 still retries 0731.
 BATON_MAX_LEN = int(os.environ.get("BATON_MAX_LEN", "347392"))
-QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "88064"))
-QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "70000"))
+QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "104192"))
+QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "88000"))
 
 ASYNC_RE = re.compile(
     r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"

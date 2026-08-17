@@ -28,9 +28,11 @@ DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")
 SERVED = os.environ.get("BATON_SERVED", "dream-baton")
 LOG = os.environ.get("BATON_LOG", os.path.expanduser("~/logs/dream-baton.log"))
 # Advertise 0731's window so /new is not stuck at Qwen 88k.
-# Requests that would overflow Qwen (~80k prompt) go to 0731.
+# Requests that would overflow Qwen go to 0731. chars/4 undercounted
+# Hermes tool dumps (2026-08-16 Telegram: 90k real, estimate <75k).
 BATON_MAX_LEN = int(os.environ.get("BATON_MAX_LEN", "347392"))
-QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "75000"))
+QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "88064"))
+QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "70000"))
 
 ASYNC_RE = re.compile(
     r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"
@@ -69,21 +71,52 @@ def last_user_text(body: dict) -> str:
     return "\n".join(texts)
 
 
+def _chars(obj) -> int:
+    if obj is None:
+        return 0
+    if isinstance(obj, str):
+        return len(obj)
+    if isinstance(obj, list):
+        return sum(_chars(p.get("text") if isinstance(p, dict) else p) for p in obj)
+    if isinstance(obj, dict):
+        try:
+            return len(json.dumps(obj, default=str))
+        except TypeError:
+            return len(str(obj))
+    return len(str(obj))
+
+
 def est_prompt_tokens(body: dict) -> int:
+    # Dense JSON / tool dumps are ~3 chars/token. //4 missed the 88k wall.
     n = 0
     for m in body.get("messages") or []:
         if not isinstance(m, dict):
             continue
-        c = m.get("content")
-        if isinstance(c, str):
-            n += max(1, len(c) // 4)
-        elif isinstance(c, list):
-            n += sum(max(1, len(str(p.get("text", ""))) // 4) for p in c if isinstance(p, dict))
-        if m.get("tool_calls"):
-            n += 200
+        n += max(1, _chars(m.get("content")) // 3)
+        tc = m.get("tool_calls")
+        if tc:
+            n += max(80, _chars(tc) // 3)
+        if m.get("role") == "tool":
+            n += 40
     tools = body.get("tools") or []
-    n += 80 * len(tools)
+    n += 100 * len(tools)
     return n
+
+
+def is_ctx_overflow(err_obj, raw: str = "") -> bool:
+    blob = raw or ""
+    if isinstance(err_obj, dict):
+        try:
+            blob += json.dumps(err_obj)
+        except TypeError:
+            blob += str(err_obj)
+    s = blob.lower()
+    return (
+        "exceed_context" in s
+        or "exceeds the available context" in s
+        or "context length" in s
+        or "maximum context" in s
+    )
 
 
 def pick_brain(body: dict) -> str:
@@ -213,17 +246,38 @@ class Handler(BaseHTTPRequestHandler):
         base, model = (DS4F, DS4F_MODEL) if brain == "0731" else (QWEN, QWEN_MODEL)
         t0 = time.perf_counter()
         want_stream = bool(body.get("stream"))
+        est = est_prompt_tokens(body)
         if want_stream:
+            used = brain
             try:
                 up = forward_stream(base, model, body)
             except urllib.error.HTTPError as e:
                 raw = e.read().decode("utf-8", "replace")
-                log(f"pick={brain} stream-err {e.code} {raw[:200]}")
+                parsed = None
                 try:
-                    self._send(e.code, json.loads(raw))
+                    parsed = json.loads(raw)
                 except Exception:
-                    self._send(e.code, {"error": raw[:800]})
-                return
+                    parsed = None
+                if brain == "qwen" and is_ctx_overflow(parsed, raw):
+                    log(f"pick=qwen est={est} stream-overflow → 0731 {raw[:160]}")
+                    try:
+                        up = forward_stream(DS4F, DS4F_MODEL, body)
+                        used = "0731-overflow"
+                    except urllib.error.HTTPError as e2:
+                        raw2 = e2.read().decode("utf-8", "replace")
+                        log(f"pick=qwen 0731-overflow-err {e2.code} {raw2[:200]}")
+                        try:
+                            self._send(e2.code, json.loads(raw2))
+                        except Exception:
+                            self._send(e2.code, {"error": raw2[:800]})
+                        return
+                else:
+                    log(f"pick={brain} est={est} stream-err {e.code} {raw[:200]}")
+                    try:
+                        self._send(e.code, parsed if isinstance(parsed, dict) else {"error": raw[:800]})
+                    except Exception:
+                        self._send(e.code, {"error": raw[:800]})
+                    return
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
@@ -234,7 +288,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.flush()
             finally:
                 up.close()
-            log(f"pick={brain} used={brain} stream {time.perf_counter()-t0:.2f}s")
+            log(f"pick={brain} used={used} est={est} stream {time.perf_counter()-t0:.2f}s")
             return
         code, resp = forward(base, model, body)
         used = brain
@@ -248,10 +302,14 @@ class Handler(BaseHTTPRequestHandler):
         ):
             code, resp = forward(DS4F, DS4F_MODEL, body)
             used = "0731-cascade"
+        elif brain == "qwen" and code >= 400 and is_ctx_overflow(resp):
+            log(f"pick=qwen est={est} overflow → 0731")
+            code, resp = forward(DS4F, DS4F_MODEL, body)
+            used = "0731-overflow"
         if isinstance(resp, dict) and resp.get("model"):
             resp["model"] = SERVED
         dt = time.perf_counter() - t0
-        log(f"pick={brain} used={used} {dt:.2f}s http={code}")
+        log(f"pick={brain} used={used} est={est} {dt:.2f}s http={code}")
         self._send(code, resp)
 
 

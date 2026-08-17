@@ -7,7 +7,7 @@ This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSee
 | Piece | Where | URL | Window (live) |
 |---|---|---|---|
 | **DeepSeek-V4-Flash-0731** TP=2 | both Sparks | `http://127.0.0.1:8888/v1` | **347392** |
-| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + MTP3 + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **104192** (requested 104000) |
+| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + MTP3 + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **124160** (requested 124000) |
 | **Qwen3-VL-4B** (optional for text benches) | **node1 only** | `:8891` (proxy `:8890`) | 8192 |
 | **Baton** (this repo) | head node | `http://127.0.0.1:8877/v1` | advertises **347392** |
 
@@ -114,7 +114,7 @@ Roommate (`scripts/start-roommate.sh`):
 ```text
 llama-server
   --model    Qwen3.8-27B-UD-Q4_K_XL.gguf
-  --ctx-size 104000         # llama.cpp aligns to 104192
+  --ctx-size 124000         # llama.cpp aligns to 124160
   --parallel 1
   --flash-attn on
   --cache-type-k q4_0
@@ -135,7 +135,7 @@ Baton (`dream-baton.py` on `:8877`):
 |---|---|
 | default | Qwen |
 | `tool_choice=required` or `any` | 0731 |
-| estimated prompt > **88000** tokens | 0731 (Qwen’s 104k would overflow) |
+| estimated prompt > **100000** tokens | 0731 (Qwen’s 124k would overflow) |
 | async / poll / run-script | 0731 |
 | find-then-email | 0731 |
 
@@ -161,7 +161,7 @@ Expect:
 
 ```text
 UP   0731   max_model_len=347392
-UP   Qwen   n_ctx=104192
+UP   Qwen   n_ctx=124160
 UP   baton  max_model_len=347392  id=dream-baton
 ```
 

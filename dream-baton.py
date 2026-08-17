@@ -28,10 +28,10 @@ DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")
 SERVED = os.environ.get("BATON_SERVED", "dream-baton")
 LOG = os.environ.get("BATON_LOG", os.path.expanduser("~/logs/dream-baton.log"))
 # Advertise 0731's window so /new is not stuck at Qwen leftover.
-# Live roommate n_ctx=104192. Hand off before that wall; 400 still retries 0731.
+# Live roommate n_ctx=124160. Hand off before that wall; 400 still retries 0731.
 BATON_MAX_LEN = int(os.environ.get("BATON_MAX_LEN", "347392"))
-QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "104192"))
-QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "88000"))
+QWEN_CTX = int(os.environ.get("BATON_QWEN_CTX", "124160"))
+QWEN_SAFE = int(os.environ.get("BATON_QWEN_SAFE", "100000"))
 
 ASYNC_RE = re.compile(
     r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"

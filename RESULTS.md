@@ -5,7 +5,7 @@ Suite: **69** scenarios · seed **42** · thinking **off** · completion **69/69
 
 Live occupancy while scoring Dream rows: 0731 TP2 `:8888` `max_model_len=347392` + Qwen GGUF n2 `:8100` `n_ctx=88064` + 4B vision n1.
 
-**Live roommate after those runs (2026-08-16 night):** Qwen `n_ctx=104192` (requested 104000). Same GGUF + MTP3. teb numbers above are the 88k occupancy.
+**Live roommate (2026-08-17):** Qwen `n_ctx=124160` (requested 124000). Same GGUF + MTP3. teb numbers above are the 88k occupancy.
 
 | Occupancy | Score | Pass / partial / fail | Wall | Unique tok/s |
 |-----------|------:|----------------------:|-----:|-------------:|

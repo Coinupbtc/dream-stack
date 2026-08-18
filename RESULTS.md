@@ -24,6 +24,8 @@ Live occupancy while scoring Dream rows: 0731 TP2 `:8888` `max_model_len=347392`
 
 **This rematch: 91** (run `2026-08-18T02-34-54.165263Z_5502bb24`). Draft/CC/role-email handoff: **TC-48 and TC-50 pass**. **TC-03, 45, 61** still pass. Lost **TC-35** (Kelvin) and **TC-68** (extra tools); **TC-60** and **TC-53** back to partial. Same 126/138 as the first 88k baton, different mix.
 
+**Offered / live router is the 94 stack** (notify / script / research). Draft/CC regex was reverted so Telegram, Console, and `origin/main` match the 94 run.
+
 0731 Dream fails (do not overlap Qwen): TC-34, 42, 51, 57, 68.
 Qwen Dream fails: TC-03, 45, 61.
 

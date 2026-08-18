@@ -66,15 +66,6 @@ FIND_THEN_ACT_RE = re.compile(
     r".{0,80}\b(?:that|about|meeting|moved|email|message)\b",
     re.I,
 )
-# Draft-then-send / CC-then-send / send to a role then a name — 0731 resolves addresses.
-DRAFT_SEND_RE = re.compile(
-    r"\b(?:prepare|draft)\b.{0,80}\bemail\b"
-    r"|\bdon'?t send (it )?yet\b"
-    r"|\bcc\b.{0,80}\b(?:send|email)\b"
-    r"|\b(?:send|email).{0,80}\bcc\b"
-    r"|\bsend (an )?email\b.{0,80}\b(?:the new|our|the)\s+(?:pm|manager|lead|contact)\b",
-    re.I,
-)
 
 
 def log(msg: str) -> None:
@@ -211,8 +202,6 @@ def pick_brain(body: dict) -> str:
     if FIND_THEN_ACT_RE.search(text):
         return "0731"
     if RESEARCH_RE.search(text):
-        return "0731"
-    if DRAFT_SEND_RE.search(text):
         return "0731"
     return "qwen"
 

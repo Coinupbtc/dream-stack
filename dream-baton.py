@@ -42,15 +42,28 @@ _n2_cv = threading.Condition()
 _n2_0731 = 0
 _n2_qwen_fat = 0
 
+# Run/poll a named script or job — not "run the numbers" chat.
 ASYNC_RE = re.compile(
-    r"\b(poll|pending|async|run_code|run the (analysis )?script|transactions_20|"
-    r"execute the script|wait (for|until) (it|the) (to )?(finish|complete))\b",
+    r"\b(?:run|execute|launch)\b.{0,80}\b(?:script|analysis|job)\b"
+    r"|\b(?:poll|pending|async|run_code)\b"
+    r"|\bwait\s+(?:for|until)\b.{0,40}\b(?:finish|complete|done|ready)\b"
+    r"|\b\w+\(\s*source\s*=",
+    re.I,
+)
+# Lookup-then-act, or implicit notify a named person (not "let me know" / "tell me").
+# Multi-step research/report chains: 0731 same score, ~2× faster on the long ones.
+RESEARCH_RE = re.compile(
+    r"\b(?:put together|compile|draft|write)\b.{0,60}\b(?:report|analysis|brief)\b"
+    r"|\b(?:competitor|competitive|quarterly)\s+(?:analysis|performance|report)\b"
+    r"|\b(?:research|analysis)\s+report\b",
     re.I,
 )
 FIND_THEN_ACT_RE = re.compile(
     r"\b(look\s*up|find|search (for )?(contact|her|him)|who is)\b.*\b(email|send|message|notify)\b"
     r"|\b(email|send|message|notify)\b.*\b(look\s*up|find|contact)\b"
-    r"|\b(email|send).{0,80}\b(sarah|contact)\b",
+    r"|\blet\s+(?!me\b|us\b)[\w.'-]+(?:\s+[\w.'-]+)?\s+know\b"
+    r"|\b(?:tell|inform|notify)\s+(?!me\b|us\b)[\w.'-]+(?:\s+[\w.'-]+)?\b"
+    r".{0,80}\b(?:that|about|meeting|moved|email|message)\b",
     re.I,
 )
 
@@ -187,6 +200,8 @@ def pick_brain(body: dict) -> str:
     if ASYNC_RE.search(text):
         return "0731"
     if FIND_THEN_ACT_RE.search(text):
+        return "0731"
+    if RESEARCH_RE.search(text):
         return "0731"
     return "qwen"
 

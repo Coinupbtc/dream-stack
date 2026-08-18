@@ -17,9 +17,12 @@ Live occupancy while scoring Dream rows: 0731 TP2 `:8888` `max_model_len=347392`
 | Solo Qwen n2 131k (0731 parked) | 90 | 58 / 8 / 3 | 16.3 min | 22.0 |
 | Baton :8877 (first, 88k) | 91 | 59 / 8 / 2 | 15.0 min | 19.2 (Qwen default) |
 | Baton rematch (116k + cop) | 88 | 57 / 7 / 5 | 16.4 min | — |
-| **Baton live** (notify/script/research handoff) | **94** | **61 / 8 / 0** | **13.9 min** | — |
+| **Baton live** (notify/script/research) | **94** | **61 / 8 / 0** | **13.9 min** | — |
+| Baton + draft/CC handoff | 91 | 59 / 8 / 2 | 16.1 min | — |
 
-**Live headline: 94** (run `2026-08-18T01-09-23.332449Z_72cf1a03`). **0 fails.** 130/138. Median turn **3.8s**. Flipped **TC-03, TC-60, TC-61** to pass (plus still TC-45). 8 partials, no hard misses.
+**Best full 69: 94** (run `2026-08-18T01-09-23.332449Z_72cf1a03`). **0 fails.** 130/138. Median **3.8s**.
+
+**This rematch: 91** (run `2026-08-18T02-34-54.165263Z_5502bb24`). Draft/CC/role-email handoff: **TC-48 and TC-50 pass**. **TC-03, 45, 61** still pass. Lost **TC-35** (Kelvin) and **TC-68** (extra tools); **TC-60** and **TC-53** back to partial. Same 126/138 as the first 88k baton, different mix.
 
 0731 Dream fails (do not overlap Qwen): TC-34, 42, 51, 57, 68.
 Qwen Dream fails: TC-03, 45, 61.
@@ -36,7 +39,7 @@ Roommate tax on 0731 unique decode is ~**8%** (39.6 vs 42.7). Quality did not go
 | TC-46 research (5-turn) | partial 44.8s | partial | **33.3s** |
 | TC-62 research (6-turn) | partial 70.7s | partial | **32.0s** |
 
-Full 69 confirmed those flips + TC-68 pass. Headline **94**.
+Full 69 on the notify/script/research baton: **94**. Draft/CC rematch: **91** (48+50 pass; 35+68 fail).
 
 Point any OpenAI client at `http://127.0.0.1:8877/v1` model `dream-baton`.
 

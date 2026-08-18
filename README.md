@@ -20,6 +20,7 @@ Measured 2026-08-16 on this occupancy (tool-eval-bench 69, seed 42, thinking off
 | 0731 Dream | 87 | 56 / 8 / 5 | 8.1 min |
 | Qwen Dream | 90 | 58 / 8 / 3 | 18.0 min |
 | **Baton** (`dream-baton`) | **94** | **61 / 8 / 0** | 13.9 min |
+| Baton rematch (draft/CC) | 91 | 59 / 8 / 2 | 16.1 min |
 
 Parking the roommate does **not** raise 0731’s tool score (Prime 85). Giving Qwen the whole node does **not** raise Qwen’s score (solo 90). Full numbers: [RESULTS.md](RESULTS.md).
 

@@ -1,6 +1,20 @@
 # Dream stack
 
+![Tool-eval-bench 69 on 2× DGX Spark](docs/screenshots/hero.png)
+
+![CI](https://github.com/Coinupbtc/dream-stack/actions/workflows/ci.yml/badge.svg)
+
 Occupancy recipe for **two NVIDIA DGX Spark** boxes (GB10, CX7).
+
+## At a glance
+
+| | |
+|---|---|
+| **What it is** | Keep Mia 0731 TP2 as the chat brain, room a Qwen 3.8 GGUF on leftover UMA, and talk to **one URL** (`dream-baton` `:8877`). |
+| **What it’s for** | Spark owners who want **measured occupancy**, not “one model per box.” Laptop clones still get the scores, flags, and a no-GPU `./setup.sh`. |
+| **How to use it** | `./setup.sh` (orients). Two Sparks + 0731 already at 348k / 0.74: edit `.env`, then `./setup.sh --up`. |
+
+**GitHub description:** What: 2× Spark occupancy — 0731 TP2 @ 348k + Qwen roommate + baton. For: clone, copy `.env`, bring the stack up. How: `./setup.sh` then `./setup.sh --up`.
 
 This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSeek-V4-Flash-0731 DSpark TP=2](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) pair. Dream keeps that chat brain and rooms two more services in leftover UMA:
 
@@ -25,17 +39,25 @@ Parking the roommate does **not** raise 0731’s tool score (Prime 85). Giving Q
 
 ---
 
-## Clone and start
+## Try it
 
-You need 0731 already answering on `:8888` at **348k / 0.74**. Then this repo starts the roommate and the one-URL baton.
+### One command (any machine — no GPU)
+
+```bash
+git clone https://github.com/Coinupbtc/dream-stack.git
+cd dream-stack && ./setup.sh
+```
+
+Writes `.env` from `env.example`, syntax-checks scripts, prints next steps.
+
+### Two Sparks (0731 already on `:8888` at 348k / 0.74)
 
 ```bash
 git clone https://github.com/Coinupbtc/dream-stack.git
 cd dream-stack
-cp env.example .env
+./setup.sh
 # edit .env — at least N2_IP, SPARK2, GGUF, LLAMA_SERVER
-
-bash scripts/up.sh
+./setup.sh --up
 ```
 
 `up.sh` checks 0731, starts Qwen on node2 with the **exact live flags**, starts baton on `:8877`, then smokes both brains.

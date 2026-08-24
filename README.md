@@ -21,8 +21,8 @@ This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSee
 | Piece | Where | URL | Window (live) |
 |---|---|---|---|
 | **DeepSeek-V4-Flash-0731** TP=2 | both Sparks | `http://127.0.0.1:8888/v1` | **347392** |
-| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + **MTP4** + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **116224** (requested 116000) |
-| **Qwen3-VL-4B** (optional for text benches) | **node1 only** | `:8891` (proxy `:8890`) | 8192 |
+| **Qwen3.8-27B** Unsloth UD-Q4_K_XL + **mmproj** + **MTP4** + ngram | **node2 only** | `http://192.168.100.11:8100/v1` | **116224** engine. Client prompt budget **~95k** if you also want 20k out (in+out share the slot). Native VL. |
+| **Qwen3-VL-4B sidecar** | **gone in Dream** | — | Prime-only. Dream eyes = the 27B roommate. |
 | **Baton** (this repo) | head node | `http://127.0.0.1:8877/v1` | advertises **347392** |
 
 NVFP4 Qwen **does not fit** next to 0731 TP2. The roommate has to be the GGUF. This is **not** “one model per Spark.” 0731 still owns both UMAs.

@@ -79,6 +79,23 @@ def log(msg: str) -> None:
         pass
 
 
+def has_images(body: dict) -> bool:
+    """0731 is blind. Image parts stay on Qwen (mmproj), never overflow to 0731."""
+    for m in body.get("messages") or []:
+        if not isinstance(m, dict):
+            continue
+        c = m.get("content")
+        if not isinstance(c, list):
+            continue
+        for p in c:
+            if not isinstance(p, dict):
+                continue
+            t = str(p.get("type") or "")
+            if t in {"image_url", "image", "input_image"} or p.get("image_url"):
+                return True
+    return False
+
+
 def last_user_text(body: dict) -> str:
     texts = []
     for m in body.get("messages") or []:
@@ -122,6 +139,23 @@ def est_prompt_tokens(body: dict) -> int:
     tools = body.get("tools") or []
     n += 100 * len(tools)
     return n
+
+
+def clamp_qwen_out(body: dict, prompt_est: int) -> dict:
+    """Keep prompt+completion inside n_ctx so a 20k max_tokens cannot 400 Qwen."""
+    out = dict(body)
+    try:
+        want = int(out.get("max_tokens") or 20480)
+    except (TypeError, ValueError):
+        want = 20480
+    room = int(QWEN_CTX) - int(prompt_est) - 512
+    if room < 256:
+        return out
+    capped = max(256, min(want, room))
+    if capped != want:
+        log(f"qwen max_tokens {want} → {capped} (est={prompt_est} n_ctx={QWEN_CTX})")
+        out["max_tokens"] = capped
+    return out
 
 
 def is_ctx_overflow(err_obj, raw: str = "") -> bool:
@@ -188,6 +222,8 @@ class N2Slot:
 
 
 def pick_brain(body: dict) -> str:
+    if has_images(body):
+        return "qwen"
     tc = body.get("tool_choice")
     if isinstance(tc, dict):
         tc = tc.get("type") or tc.get("tool") or ""
@@ -322,11 +358,13 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             self._send(400, {"error": "bad json"})
             return
+        est = est_prompt_tokens(body)
         brain = pick_brain(body)
+        if brain == "qwen":
+            body = clamp_qwen_out(body, est)
         base, model = (DS4F, DS4F_MODEL) if brain == "0731" else (QWEN, QWEN_MODEL)
         t0 = time.perf_counter()
         want_stream = bool(body.get("stream"))
-        est = est_prompt_tokens(body)
         slot = "0731" if brain == "0731" else ("qwen_fat" if est >= N2_FAT else None)
         with N2Slot(slot):
             self._forward_locked(body, brain, base, model, est, want_stream, t0)
@@ -343,7 +381,7 @@ class Handler(BaseHTTPRequestHandler):
                     parsed = json.loads(raw)
                 except Exception:
                     parsed = None
-                if brain == "qwen" and is_ctx_overflow(parsed, raw):
+                if brain == "qwen" and is_ctx_overflow(parsed, raw) and not has_images(body):
                     log(f"pick=qwen est={est} stream-overflow → 0731 {raw[:160]}")
                     try:
                         up = forward_stream(DS4F, DS4F_MODEL, body)
@@ -384,10 +422,11 @@ class Handler(BaseHTTPRequestHandler):
             brain == "qwen"
             and str(tc or "").lower() in {"required", "any"}
             and not has_tool_calls(resp)
+            and not has_images(body)
         ):
             code, resp = forward(DS4F, DS4F_MODEL, body)
             used = "0731-cascade"
-        elif brain == "qwen" and code >= 400 and is_ctx_overflow(resp):
+        elif brain == "qwen" and code >= 400 and is_ctx_overflow(resp) and not has_images(body):
             log(f"pick=qwen est={est} overflow → 0731")
             code, resp = forward(DS4F, DS4F_MODEL, body)
             used = "0731-overflow"

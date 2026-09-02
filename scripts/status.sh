@@ -4,7 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck disable=SC1091
 [[ -f "$ROOT/.env" ]] && set -a && source "$ROOT/.env" && set +a
-N2_IP="${N2_IP:-192.168.100.11}"
+# RFC 5737 TEST-NET-1 fallback — override via N2_IP in .env
+N2_IP="${N2_IP:-192.0.2.10}"
 
 probe() {
   local name="$1" url="$2"

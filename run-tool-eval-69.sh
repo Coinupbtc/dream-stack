@@ -35,12 +35,15 @@ run_one() {
   date -Iseconds
 }
 
+# RFC 5737 TEST-NET-1 fallback — override via N2_IP
+N2_IP="${N2_IP:-192.0.2.10}"
+
 # keep the trio alive — fail loud if someone parked an engine
 curl -sf --max-time 5 http://127.0.0.1:8888/v1/models | grep -q deepseek
-curl -sf --max-time 5 http://192.168.100.11:8100/v1/models | grep -qi qwen
+curl -sf --max-time 5 "http://${N2_IP}:8100/v1/models" | grep -qi qwen
 
 run_one "dream-0731-348k" "http://127.0.0.1:8888" "deepseek-v4-flash-0731"
-run_one "dream-qwen38-gguf-88k" "http://192.168.100.11:8100" "Qwen3.8-27B"
+run_one "dream-qwen38-gguf-88k" "http://${N2_IP}:8100" "Qwen3.8-27B"
 
 echo "DONE both 69s"
 ls -lt "$OUT" | head

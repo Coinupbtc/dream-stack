@@ -7,7 +7,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export BATON_HOST="${BATON_HOST:-127.0.0.1}"
 export BATON_PORT="${BATON_PORT:-8877}"
 export BATON_0731="${BATON_0731:-http://127.0.0.1:8888/v1}"
-export BATON_QWEN="${BATON_QWEN:-http://192.168.100.11:8100/v1}"
+# Prefer BATON_QWEN, else compose from N2_IP (RFC 5737 TEST-NET-1 if unset).
+export BATON_QWEN="${BATON_QWEN:-http://${N2_IP:-192.0.2.10}:8100/v1}"
 export BATON_MAX_LEN="${BATON_MAX_LEN:-347392}"
 export BATON_QWEN_SAFE="${BATON_QWEN_SAFE:-75000}"
 

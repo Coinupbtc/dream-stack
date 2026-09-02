@@ -7,7 +7,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck disable=SC1091
 [[ -f "$ROOT/.env" ]] && set -a && source "$ROOT/.env" && set +a
 export PATH="${HOME}/.local/bin:${PATH}"
-N2_IP="${N2_IP:-192.168.100.11}"
+# RFC 5737 TEST-NET-1 fallback — override via N2_IP in .env
+N2_IP="${N2_IP:-192.0.2.10}"
 QWEN_PORT="${QWEN_PORT:-8100}"
 BATON_PORT="${BATON_PORT:-8877}"
 OUT="${ROOT}/runs"

@@ -22,7 +22,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = os.environ.get("BATON_HOST", "127.0.0.1")
 PORT = int(os.environ.get("BATON_PORT", "8877"))
-QWEN = os.environ.get("BATON_QWEN", "http://192.168.100.11:8100/v1").rstrip("/")
+# Default is RFC 5737 TEST-NET-1; override with BATON_QWEN (or N2_IP via start-baton.sh).
+QWEN = os.environ.get("BATON_QWEN", "http://192.0.2.10:8100/v1").rstrip("/")
 DS4F = os.environ.get("BATON_0731", "http://127.0.0.1:8888/v1").rstrip("/")
 QWEN_MODEL = os.environ.get("BATON_QWEN_MODEL", "Qwen3.8-27B")
 DS4F_MODEL = os.environ.get("BATON_0731_MODEL", "deepseek-v4-flash-0731")

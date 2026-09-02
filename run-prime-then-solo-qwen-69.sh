@@ -10,7 +10,8 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 OUT="$ROOT/runs"
 LOG="$HOME/logs/prime-solo-qwen-69.$(date +%Y%m%d-%H%M%S).log"
 ALERT="$HOME/.hermes/scripts/alertbot-send.sh"
-N2_IP="${N2_IP:-192.168.100.11}"
+# RFC 5737 TEST-NET-1 fallback — override via N2_IP
+N2_IP="${N2_IP:-192.0.2.10}"
 KW='{"chat_template_kwargs":{"thinking":false,"enable_thinking":false},"enable_thinking":false}'
 mkdir -p "$OUT" "$(dirname "$LOG")"
 exec > >(tee -a "$LOG") 2>&1
@@ -45,7 +46,7 @@ systemctl --user restart hermes-gateway-orchestrator hermes-gateway-dobby \
   hermes-gateway-light hermes-gateway-smeagle || true
 if [[ -x "$HOME/.hermes/scripts/ensure-qwen-vision.sh" ]]; then
   QWEN_VISION_WAIT_SECS=300 QWEN_VISION_FORCE=1 \
-    QWEN_VISION_BACKEND_HOST=192.168.100.11 \
+    QWEN_VISION_BACKEND_HOST="${N2_IP}" \
     bash "$HOME/.hermes/scripts/ensure-qwen-vision.sh" || echo "WARN vision n2"
 fi
 python3 - <<'PY'

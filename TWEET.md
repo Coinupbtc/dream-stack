@@ -16,7 +16,7 @@ Qwen 3.8 27B GGUF on node2 leftover (88k, MTP3).
 4B vision stay-up on node1.
 One URL in front: baton :8877. No tags. It picks the brain.
 
-tool-eval-bench 69 · seed 42 · thinking off · 69/69 · error 0
+tool-eval-bench 69 · seed 42 · thinking off · 69 completed · 0 infra errors (not a 69/69 pass)
 
 0731 Dream  87  56/8/5  8.1 min  39.6 tok/s
 Qwen Dream  90  58/8/3  18.0 min 18.4 tok/s

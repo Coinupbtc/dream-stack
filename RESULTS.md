@@ -1,13 +1,13 @@
 # Measured scores (2026-08-16)
 
 Instrument: [tool-eval-bench](https://github.com/SeraphimSerapis/tool-eval-bench) `v2.5.1.dev29+g573a3ec70`
-Suite: **69** scenarios · seed **42** · thinking **off** · completion **69/69** · error **0**
+Suite: **69** scenarios · seed **42** · thinking **off** · all 69 **completed** (0 infra errors). That is run completion, not a 69/69 pass score — see Pass / partial / fail. CI in this repo does not run teb; these rows are live `scripts/run-teb.sh 69 …`.
 
 Live occupancy while scoring Dream rows: 0731 TP2 `:8888` `max_model_len=347392` + Qwen GGUF n2 `:8100` `n_ctx=88064` + 4B vision n1.
 
 **Live roommate (2026-08-17 night):** Qwen `n_ctx=116224`, **MTP4** (unique-256 **20.1** tok/s vs MTP3 **18.4**). 124k OOM-killed n2. First baton teb (91) was 88k occupancy.
 
-**2026-08-17 rematch** (same seed 42, thinking off, 69/69): live 116k + n2 traffic cop. MTP5 unique-256 **20.2** (wash vs MTP4 **20.1**). 0731 `MAX_NUM_SEQS=4` / `MAX_NUM_BATCHED_TOKENS=16384` **did not boot** while Qwen held n2 (free 89.71G < 90.05G; later KV 3.91G < 8.14G). Reverted to **6 / 8192**. Do not retry those 0731 knobs without parking Qwen first.
+**2026-08-17 rematch** (same seed 42, thinking off, all 69 completed): live 116k + n2 traffic cop. MTP5 unique-256 **20.2** (wash vs MTP4 **20.1**). 0731 `MAX_NUM_SEQS=4` / `MAX_NUM_BATCHED_TOKENS=16384` **did not boot** while Qwen held n2 (free 89.71G < 90.05G; later KV 3.91G < 8.14G). Reverted to **6 / 8192**. Do not retry those 0731 knobs without parking Qwen first.
 
 | Occupancy | Score | Pass / partial / fail | Wall | Unique tok/s |
 |-----------|------:|----------------------:|-----:|-------------:|

@@ -6,6 +6,8 @@
 
 Occupancy recipe for **two NVIDIA DGX Spark** boxes (GB10, CX7).
 
+**Credit — TP=2 / dual-node serving:** The 0731 pair across both Sparks is the public [MiaAI-Lab / Anemll DeepSeek-V4-Flash DSpark TP=2](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) recipe. Dream does not invent dual-node TP=2 serving. This repo rooms leftover UMA (Qwen GGUF + baton) on top of that pair.
+
 ## At a glance
 
 | | |
@@ -27,7 +29,7 @@ This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSee
 
 NVFP4 Qwen **does not fit** next to 0731 TP2. The roommate has to be the GGUF. This is **not** “one model per Spark.” 0731 still owns both UMAs.
 
-Measured 2026-08-16 on this occupancy (tool-eval-bench 69, seed 42, thinking off, 69/69, error 0):
+Measured 2026-08-16 on this occupancy ([tool-eval-bench](https://github.com/SeraphimSerapis/tool-eval-bench) suite of 69, seed 42, thinking off). All 69 scenarios **completed** (0 infra errors). That is run completion, not a 69/69 pass score. Numbers below are the harness `score` and pass / partial / fail. CI in this repo is syntax + `./setup.sh` only — it does not run teb. Reproduce with `bash scripts/run-teb.sh 69 baton` (and `0731` / `qwen`):
 
 | Brain | Score | Pass / partial / fail | Wall |
 |---|---:|---|---:|

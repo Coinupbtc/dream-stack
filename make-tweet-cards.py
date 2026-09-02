@@ -4,7 +4,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-OUT = Path("/home/coinupbtc/Documents/projects/dream-stack/tweet-cards")
+# Write next to this file so a clone can regenerate cards (no house path).
+OUT = Path(__file__).resolve().parent / "tweet-cards"
 OUT.mkdir(parents=True, exist_ok=True)
 
 NAVY = (11, 18, 32)
@@ -40,7 +41,7 @@ def card1() -> Path:
     im = Image.new("RGB", (W, H), NAVY)
     d = ImageDraw.Draw(im)
     d.text((40, 28), "DREAM STACK  ·  2× DGX Spark GB10", font=font(28, True), fill=TEAL)
-    d.text((40, 72), "tool-eval-bench 69   seed 42   thinking OFF   69/69   infra error 0", font=font(20), fill=MUTED)
+    d.text((40, 72), "tool-eval-bench 69   seed 42   thinking OFF   69 completed   infra error 0", font=font(20), fill=MUTED)
     d.text((40, 104), "v2.5.1.dev29+g573a3ec70   occupancy + baton by coinupbtc", font=font(18), fill=MUTED)
 
     headers = ["Occupancy", "Score", "P / part / F", "Points", "Wall", "Unique t/s", "Med turn"]

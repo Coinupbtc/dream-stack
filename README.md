@@ -4,17 +4,19 @@
 
 ![CI](https://github.com/Coinupbtc/dream-stack/actions/workflows/ci.yml/badge.svg)
 
-Occupancy recipe for **two NVIDIA DGX Spark** boxes (GB10, CX7).
+Supporting occupancy for **two NVIDIA DGX Spark** boxes (GB10, CX7) after 0731 TP=2 is already up. Not the public hero — that is [miaai35-tune](https://github.com/Coinupbtc/miaai35-tune).
+
+**Credit — TP=2 / dual-node serving:** [MiaAI-Lab / Anemll DeepSeek-V4-Flash DSpark TP=2](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) is the recipe that runs 0731 across both Sparks. This repo adds leftover-UMA occupancy (Qwen GGUF roommate + baton) on that pair.
 
 ## At a glance
 
 | | |
 |---|---|
-| **What it is** | Keep Mia 0731 TP2 as the chat brain, room a Qwen 3.8 GGUF on leftover UMA, and talk to **one URL** (`dream-baton` `:8877`). |
-| **What it’s for** | Spark owners who want **measured occupancy**, not “one model per box.” Laptop clones still get the scores, flags, and a no-GPU `./setup.sh`. |
+| **What it is** | Supporting occupancy: keep MiaAI 0731 TP2 as the chat brain, room a Qwen 3.8 GGUF on leftover UMA, talk to **one URL** (`dream-baton` `:8877`). |
+| **What it’s for** | Spark owners who already run the MiaAI TP=2 pair and want leftover-UMA occupancy, not a hire-lead or Spark flagship. Laptop clones still get the scores, flags, and a no-GPU `./setup.sh`. |
 | **How to use it** | `./setup.sh` (orients). Two Sparks + 0731 already at 348k / 0.74: edit `.env`, then `./setup.sh --up`. |
 
-**GitHub description:** What: 2× Spark occupancy — 0731 TP2 @ 348k + Qwen roommate + baton. For: clone, copy `.env`, bring the stack up. How: `./setup.sh` then `./setup.sh --up`.
+**GitHub description:** What: supporting occupancy on MiaAI 0731 TP2 — leftover Qwen + baton (hero is miaai35-tune). For: clone, copy `.env`, bring the stack up. How: `./setup.sh` then `./setup.sh --up`.
 
 This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSeek-V4-Flash-0731 DSpark TP=2](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) pair. Dream keeps that chat brain and rooms two more services in leftover UMA:
 
@@ -27,7 +29,7 @@ This is **not** a new engine. You already run the public [MiaAI / Anemll DeepSee
 
 NVFP4 Qwen **does not fit** next to 0731 TP2. The roommate has to be the GGUF. This is **not** “one model per Spark.” 0731 still owns both UMAs.
 
-Measured 2026-08-16 on this occupancy (tool-eval-bench 69, seed 42, thinking off, 69/69, error 0):
+Measured 2026-08-16 on this occupancy ([tool-eval-bench](https://github.com/SeraphimSerapis/tool-eval-bench) suite of 69, seed 42, thinking off). All 69 scenarios **completed** (0 infra errors). That is run completion, not a 69/69 pass score. Numbers below are the harness `score` and pass / partial / fail. CI in this repo is syntax + `./setup.sh` only — it does not run teb. Reproduce with `bash scripts/run-teb.sh 69 baton` (and `0731` / `qwen`):
 
 | Brain | Score | Pass / partial / fail | Wall |
 |---|---:|---|---:|
@@ -232,4 +234,4 @@ House-only A/B (parks engines on **this** cluster): `run-prime-then-solo-qwen-69
 - 0731 TP2 engine: [MiaAI-Lab / Anemll DSpark](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark)
 - Qwen 3.8 weights: [Qwen](https://huggingface.co/Qwen) / [Unsloth GGUF](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF)
 - Public tool-call eval: [tool-eval-bench](https://github.com/SeraphimSerapis/tool-eval-bench) (`v2.5.1.dev29+g573a3ec70` for the numbers in RESULTS.md)
-- Occupancy, roommate flags, vision pin, and baton: this repo
+- Occupancy notes, roommate flags, vision pin, and baton: this repo (supporting; public hero is [miaai35-tune](https://github.com/Coinupbtc/miaai35-tune))

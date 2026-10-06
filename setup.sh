@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-echo "==> Dream stack — occupancy for 2× NVIDIA DGX Spark"
-echo "    0731 TP2 @ 348k + Qwen GGUF roommate + baton :8877"
+echo "==> Dream stack — supporting occupancy on MiaAI 0731 TP2"
+echo "    leftover Qwen GGUF + baton :8877. Public hero: miaai35-tune"
 echo
 
 ok=0
